@@ -17,6 +17,8 @@
     "@types/yup": "^0.26.32",
     "antd": "^4.0.3",
     "dayjs": "^1.8.23",
+    "express": "^4.17.1",
+    "express-favicon": "^2.0.1",
     "jspdf": "^1.5.3",
     "ramda": "^0.27.0",
     "react": "^16.13.0",
@@ -29,7 +31,8 @@
     "yup": "^0.28.3"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node server.js",
+    "dev": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

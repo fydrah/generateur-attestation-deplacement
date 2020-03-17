@@ -143,11 +143,7 @@ function App() {
   };
 
   const onSubmit = (values: any) => {
-    console.log(values);
-
     const signature: string = signaturePad.toDataURL();
-
-    console.log('signature', signature);
 
     generatePdf({
       name: R.pathOr('')(['name'])(values),
@@ -159,8 +155,6 @@ function App() {
   };
 
   const handleChangeAddr = (address: any) => {
-    console.log('address', address);
-
     setAddr(address);
   };
 
@@ -200,11 +194,7 @@ function App() {
 
         <Controller
           as={
-            <PlacesAutocomplete
-              value={addr}
-              onChange={handleChangeAddr}
-              // onSelect={this.handleSelect}
-            >
+            <PlacesAutocomplete value={addr} onChange={handleChangeAddr}>
               {({
                 getInputProps,
                 suggestions,
@@ -219,7 +209,6 @@ function App() {
                     value: each.description
                   }))}
                 >
-                  {console.log('SUGGESTIONS', suggestions)}
                   <Input
                     {...getInputProps({
                       placeholder: 'Adresse'
