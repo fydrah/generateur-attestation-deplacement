@@ -68,3 +68,7 @@ span.label {
   color: black;
   text-decoration: underline;
 }
+
+.warning {
+  font-style: italic;
+}

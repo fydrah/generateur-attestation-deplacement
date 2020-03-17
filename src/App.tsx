@@ -252,6 +252,12 @@ function App() {
         Confinez-vous bien et sortez couvert 😷{' '}
       </span>
 
+      <span className="footerText warning">
+        Les données personnelles ne sont pas collectées.
+        <br />
+        ⚠️ Je ne connais pas la valeur juridique du document générée
+      </span>
+
       <a className="link" href="mailto:georges@cool.ovh">
         contact
       </a>
