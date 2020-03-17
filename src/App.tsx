@@ -258,6 +258,14 @@ function App() {
         ⚠️ Je ne connais pas la valeur juridique du document générée
       </span>
 
+      <a
+        className="link"
+        href="https://github.com/gmpetrov/generateur-attestation-deplacement"
+        target="_blank"
+      >
+        code source
+      </a>
+
       <a className="link" href="mailto:georges@cool.ovh">
         contact
       </a>
