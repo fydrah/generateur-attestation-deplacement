@@ -1,1 +1,3 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+Les données personnelles ne sont pas collectées.
+⚠️ Je ne connais pas la valeur juridique du document générée.
