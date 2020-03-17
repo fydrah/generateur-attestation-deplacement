@@ -249,7 +249,9 @@ function App() {
       </span>
 
       <span className="footerText warning">
-        Les données personnelles ne sont pas collectées.
+        Les données personnelles ne sont pas collectées (c'est à dire qu'aucune
+        des informations ci-dessus n'est envoyée à aucun moment vers un serveur,
+        tout reste uniquement sur votre téléphone)
         <br />
         ⚠️ Je ne connais pas la valeur juridique du document généré
       </span>
