@@ -255,7 +255,7 @@ function App() {
       <span className="footerText warning">
         Les données personnelles ne sont pas collectées.
         <br />
-        ⚠️ Je ne connais pas la valeur juridique du document générée
+        ⚠️ Je ne connais pas la valeur juridique du document généré
       </span>
 
       <a
