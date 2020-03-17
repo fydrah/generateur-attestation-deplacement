@@ -251,6 +251,10 @@ function App() {
       <span className="footerText">
         Confinez-vous bien et sortez couvert 😷{' '}
       </span>
+
+      <a className="link" href="mailto:georges@cool.ovh">
+        contact
+      </a>
     </div>
   );
 }
