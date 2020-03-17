@@ -176,16 +176,10 @@ function App() {
 
         <Controller
           as={
-            // <Input placeholder="Date de naissance" name="birthDay" />
             <DatePicker
               placeholder="Date de naissance"
               name="birthDay"
               format={dateFormat}
-              // onChange={(date: any, dateString: any) => {
-              //   console.log('birthDay', dateString);
-
-              //   setValue('birthDay', dateString);
-              // }}
             />
           }
           control={control}
@@ -194,29 +188,31 @@ function App() {
 
         <Controller
           as={
-            <PlacesAutocomplete value={addr} onChange={handleChangeAddr}>
-              {({
-                getInputProps,
-                suggestions,
-                getSuggestionItemProps,
-                loading
-              }) => (
-                <AutoComplete
-                  onSelect={(value: any) => {
-                    setValue('address', value);
-                  }}
-                  options={suggestions.map(each => ({
-                    value: each.description
-                  }))}
-                >
-                  <Input
-                    {...getInputProps({
-                      placeholder: 'Adresse'
-                    })}
-                  />
-                </AutoComplete>
-              )}
-            </PlacesAutocomplete>
+            <Input placeholder="Adresse" name="address" />
+
+            // <PlacesAutocomplete value={addr} onChange={handleChangeAddr}>
+            //   {({
+            //     getInputProps,
+            //     suggestions,
+            //     getSuggestionItemProps,
+            //     loading
+            //   }) => (
+            //     <AutoComplete
+            //       onSelect={(value: any) => {
+            //         setValue('address', value);
+            //       }}
+            //       options={suggestions.map(each => ({
+            //         value: each.description
+            //       }))}
+            //     >
+            //       <Input
+            //         {...getInputProps({
+            //           placeholder: 'Adresse'
+            //         })}
+            //       />
+            //     </AutoComplete>
+            //   )}
+            // </PlacesAutocomplete>
           }
           control={control}
           name="address"
