@@ -7,12 +7,12 @@ import {
   Select,
   Button,
   Typography,
-  DatePicker
+  DatePicker,
+  Alert
 } from 'antd';
 import SignaturePad from 'signature_pad';
-import * as R from 'ramda';
 import PlacesAutocomplete from 'react-places-autocomplete';
-import jsPDF from 'jspdf';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import dayjs from 'dayjs';
 
 import 'antd/dist/antd.css';
@@ -25,31 +25,37 @@ const schema = yup.object().shape({
   name: yup.string(),
   birthDay: yup.string(),
   address: yup.string(),
+  town: yup.string(),
+  postalCode: yup.string(),
   purpose: yup.string(),
   signature: yup.string()
 });
 
+enum Purpose {
+  pro = 'pro',
+  grocery = 'grocery',
+  health = 'health',
+  family = 'family',
+  sport = 'sport'
+}
+
 const PURPOSES = [
   {
     label: 'Pro',
-    value:
-      'déplacements entre le domicile et le lieu d’exercice de l’activité professionnelle, lorsqu’ils sont indispensables à l’exercice d’activités ne pouvant être organisées sous forme de télétravail (sur justificatif permanent) ou déplacements professionnels ne pouvant être différés'
+    value: Purpose.pro
   },
   {
     label: 'Achats de première nécessité',
-    value:
-      'déplacements pour effectuer des achats de première nécessité dans des établissements autorisés'
+    value: Purpose.grocery
   },
-  { label: 'Santé', value: 'déplacements pour motif de santé' },
+  { label: 'Santé', value: Purpose.health },
   {
     label: 'Famille',
-    value:
-      'déplacements pour motif familial impérieux, pour l’assistance aux personnes vulnérables ou la garde d’enfants'
+    value: Purpose.family
   },
   {
     label: 'Sport',
-    value:
-      'déplacements brefs, à proximité du domicile, liés à l’activité physique individuelle des personnes, à l’exclusion de toute pratique sportive collective, et aux besoins des animaux de compagnie'
+    value: Purpose.sport
   }
 ];
 
@@ -65,97 +71,100 @@ function App() {
 
   const dateFormat = 'DD/MM/YYYY';
 
-  const generatePdf = ({
+  const generatePdf = async ({
     name,
     birthDay,
     address,
+    town,
+    postalCode,
     purpose,
     signature
   }: any) => {
-    const date = dayjs().format('DD/MM/YYYY');
-    const formattedBirthDay = dayjs(birthDay).format('DD/MM/YYYY');
-    const textIdentity = `Je soussigné(e) ${name}, né(e) le ${formattedBirthDay}, demeurant au ${address}, certifie me rendre à l'éxterieur pour le motif: ${purpose}`;
-    const textSignature = `Le ${date}`;
+    const TEXT_SIZE = 10;
+    const formattedBirthDay = dayjs(birthDay || '').format('DD/MM/YYYY');
 
-    const doc = new jsPDF();
+    const bytes = await fetch('template.pdf').then(res => res.arrayBuffer());
+    const pdfDoc = await PDFDocument.load(bytes);
 
-    const FONT_SIZE_BIG = 20;
-    const FONT_SIZE_MED = 15;
-    const FONT_SIZE_SM = 10;
-    const MAX_WIDTH = doc.internal.pageSize.width - 100;
-    const MAX_HEIGHT = doc.internal.pageSize.height - 100;
+    const page = pdfDoc.getPages()[0];
 
-    doc.setFontSize(FONT_SIZE_BIG);
-    // doc.text(35, 25, 'Paranyan loves jsPDF');
-    doc.text(
-      'ATTESTATION DE DÉPLACEMENT DÉROGATOIRE',
-      doc.internal.pageSize.width / 2,
-      40,
-      null,
-      null,
-      'center'
-    );
+    page.drawText(name || '', { x: 135, y: 622, size: TEXT_SIZE });
+    page.drawText(formattedBirthDay, { x: 135, y: 593, size: TEXT_SIZE });
+    page.drawText(address || '', { x: 135, y: 559, size: TEXT_SIZE });
+    page.drawText(`${postalCode || ''} ${town || ''}`, {
+      x: 135,
+      y: 544,
+      size: TEXT_SIZE
+    });
 
-    doc.setFontSize(FONT_SIZE_SM);
+    switch (purpose) {
+      case Purpose.pro:
+        page.drawText('x', { x: 51, y: 425, size: 17 });
+        break;
+      case Purpose.grocery:
+        page.drawText('x', { x: 51, y: 350, size: 17 });
+        break;
+      case Purpose.health:
+        page.drawText('x', { x: 51, y: 305, size: 17 });
+        break;
+      case Purpose.family:
+        page.drawText('x', { x: 51, y: 274, size: 17 });
+        break;
+      case Purpose.sport:
+        page.drawText('x', { x: 51, y: 229, size: 17 });
+        break;
+    }
 
-    doc.text(
-      doc.splitTextToSize(
-        'En application de l’article 1er du décret du 16 mars 2020 portant réglementation des déplacements dans le cadre de la lutte contre la propagation du virus Covid-19',
-        MAX_WIDTH
-      ),
-      doc.internal.pageSize.width / 2,
-      50,
-      null,
-      null,
-      'center'
-    );
+    page.drawText(town, { x: 375, y: 140, size: TEXT_SIZE });
+    page.drawText(String(new Date().getDate()), {
+      x: 478,
+      y: 140,
+      size: TEXT_SIZE
+    });
+    page.drawText(String(new Date().getMonth() + 1).padStart(2, '0'), {
+      x: 502,
+      y: 140,
+      size: 10
+    });
 
-    doc.setFontSize(FONT_SIZE_MED);
-    doc.text(
-      doc.splitTextToSize(textIdentity, MAX_WIDTH),
-      doc.internal.pageSize.width / 2,
-      doc.internal.pageSize.height / 2 - 50,
-      null,
-      null,
-      'center'
-    );
+    const signatureImg = await pdfDoc.embedPng(signature);
+    const signatureDim = signatureImg.scale(1 / (signatureImg.width / 150));
 
-    doc.setFontSize(FONT_SIZE_SM);
+    page.drawImage(signatureImg, {
+      x: page.getWidth() - signatureDim.width - 50,
+      y: 30,
+      width: signatureDim.width,
+      height: signatureDim.height
+    });
 
-    doc.text(
-      [textSignature],
-      doc.internal.pageSize.width - 50,
-      doc.internal.pageSize.height - 110,
-      null,
-      null,
-      'center'
-    );
+    const pdfBytes = await pdfDoc.save();
 
-    doc.addImage(
-      signature,
-      'PNG',
-      doc.internal.pageSize.width - 70,
-      doc.internal.pageSize.height - 100,
-      50,
-      0
-    );
-    doc.save('attestation-deplacement.pdf');
+    return new Blob([pdfBytes], { type: 'application/pdf' });
   };
 
-  const onSubmit = (values: any) => {
+  const downloadBlob = (blob: Blob, fileName: string) => {
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.href = url;
+    link.download = fileName;
+    link.click();
+  };
+
+  const onSubmit = async (values: any) => {
+    const fileName = 'attestation.pdf';
     const signature: string = signaturePad.toDataURL();
 
-    generatePdf({
-      name: R.pathOr('')(['name'])(values),
-      birthDay: R.pathOr('')(['birthDay'])(values),
-      address: R.pathOr('')(['address'])(values),
-      purpose: R.pathOr('')(['purpose'])(values),
+    const blob = await generatePdf({
+      ...values,
       signature
     });
+
+    downloadBlob(blob, fileName);
   };
 
-  const handleChangeAddr = (address: any) => {
-    setAddr(address);
+  const handleClearPad = () => {
+    signaturePad.clear();
   };
 
   useEffect(() => {
@@ -167,6 +176,32 @@ function App() {
   return (
     <div className="App">
       <Title className="title">Générateur d'attestation de déplacement</Title>
+
+      <Alert
+        className="alert"
+        type="info"
+        message={
+          <>
+            <p>
+              Pas besoin d'imprimer l'attestation de deplacement dérogatoire,{' '}
+              <a
+                href="https://www.numerama.com/politique/611777-attestation-de-deplacement-que-faire-sans-imprimante-ni-papier.html"
+                target="_blank"
+              >
+                une version numerique suffit.
+              </a>
+            </p>
+            <a
+              href="https://www.interieur.gouv.fr/Actualites/L-actu-du-Ministere/Attestation-de-deplacement-derogatoire-et-justificatif-de-deplacement-professionnel"
+              target="_blank"
+            >
+              Plus d'informations sur le site officiel du gouvernement.
+            </a>
+          </>
+        }
+        // description={}
+      ></Alert>
+
       <form className="Form" onSubmit={handleSubmit(onSubmit)}>
         <Controller
           as={<Input placeholder="Nom" name="name" />}
@@ -219,6 +254,18 @@ function App() {
         />
 
         <Controller
+          as={<Input placeholder="Ville" name="town" />}
+          control={control}
+          name="town"
+        />
+
+        <Controller
+          as={<Input placeholder="Code Postal" name="postalCode" />}
+          control={control}
+          name="postalCode"
+        />
+
+        <Controller
           as={
             <Select
               placeholder="Motif"
@@ -237,7 +284,12 @@ function App() {
         ></Controller>
 
         <span className="label">Signature:</span>
+
         <canvas></canvas>
+
+        <a className="link clear-pad" onClick={handleClearPad}>
+          Effacer signature
+        </a>
 
         <Button type="primary" htmlType="submit">
           Générer PDF
@@ -245,15 +297,13 @@ function App() {
       </form>
 
       <span className="footerText">
-        Confinez-vous bien et sortez couvert 😷{' '}
+        Bon courage pendant le confinement, et sortez couvert 😷{' '}
       </span>
 
       <span className="footerText warning">
         Les données personnelles ne sont pas collectées (c'est à dire qu'aucune
         des informations ci-dessus n'est envoyée à aucun moment vers un serveur,
         tout reste uniquement sur votre téléphone)
-        <br />
-        ⚠️ Je ne connais pas la valeur juridique du document généré
       </span>
 
       <a
